@@ -1,0 +1,26 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "internal/db/migrations"
+    queries: "internal/db/queries/users"
+    gen:
+      go:
+        package: "db"
+        out: "internal/users/repository/sqlc"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    schema: "internal/db/migrations"
+    queries: "internal/db/queries/roles"
+    gen:
+      go:
+        package: "db"
+        out: "internal/roles/repository/sqlc"
+        sql_package: "pgx/v5"
+  - engine: "postgresql"
+    schema: "internal/db/migrations"
+    queries: "internal/db/queries/permissions"
+    gen:
+      go:
+        package: "db"
+        out: "internal/permissions/repository/sqlc"
+        sql_package: "pgx/v5"
