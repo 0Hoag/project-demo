@@ -41,7 +41,7 @@ post_id() {
   code=$(echo "$resp" | jq -r '.error_code // -1')
   if [[ "$code" != "0" ]]; then
     echo "Response: $resp" >&2
-    die "$label thất bại (error_code=$code)"
+    die "$label thất bại (error_code=$code). DB mới? Chạy: export DATABASE_URL=... && make migrate-up"
   fi
   local id
   id=$(echo "$resp" | jq -r '.data.id // empty')

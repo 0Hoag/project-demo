@@ -22,6 +22,6 @@ func (h handler) mapError(err error) error {
 	case users.ErrDefaultRoleUnavailable:
 		return errDefaultRoleUnavailable
 	default:
-		panic(err)
+		return err
 	}
 }

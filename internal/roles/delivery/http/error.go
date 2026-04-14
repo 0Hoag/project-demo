@@ -10,9 +10,9 @@ var (
 	errWrongQuery = pkgErrors.NewHTTPError(140002, "Wrong query")
 	errWrongBody  = pkgErrors.NewHTTPError(140003, "Wrong body")
 
-	errRoleNotFound              = pkgErrors.NewHTTPError(144005, "Role not found")
-	errPermissionNotFound        = pkgErrors.NewHTTPError(145005, "Permission not found")
-	errPermissionAlreadyLinked     = pkgErrors.NewHTTPError(144009, "Permission already linked to this role")
+	errRoleNotFound            = pkgErrors.NewHTTPError(144005, "Role not found")
+	errPermissionNotFound      = pkgErrors.NewHTTPError(145005, "Permission not found")
+	errPermissionAlreadyLinked = pkgErrors.NewHTTPError(144009, "Permission already linked to this role")
 )
 
 func (h handler) mapError(err error) error {
@@ -24,6 +24,6 @@ func (h handler) mapError(err error) error {
 	case roles.ErrPermissionAlreadyLinked:
 		return errPermissionAlreadyLinked
 	default:
-		panic(err)
+		return err
 	}
 }

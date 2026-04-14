@@ -17,6 +17,7 @@ db-down:
 db-logs:
 	docker compose logs -f postgres
 
+# Cần DATABASE_URL (vd: source .env). Bắt buộc sau khi tạo DB / xoá volume.
 migrate-up:
 	go run github.com/pressly/goose/v3/cmd/goose@latest -dir internal/db/migrations postgres "$$DATABASE_URL" up
 

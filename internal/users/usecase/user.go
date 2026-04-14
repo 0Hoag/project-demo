@@ -30,6 +30,7 @@ func (u impleUsecase) CreateUser(ctx context.Context, input users.CreateInput) (
 		return models.User{}, err
 	}
 
+	// run once transaction
 	tx, err := u.db.Begin(ctx)
 	if err != nil {
 		u.l.Errorf(ctx, "usecase.CreateUser.Begin: %v", err)
@@ -37,7 +38,8 @@ func (u impleUsecase) CreateUser(ctx context.Context, input users.CreateInput) (
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 
-	user, err := u.repo.CreateUserInTx(ctx, tx, repository.CreateOptions{
+	// create user
+	user, err := u.repo.CreateUserWithinTx(ctx, tx, repository.CreateOptions{
 		Username:     input.Username,
 		Phone:        input.Phone,
 		PasswordHash: string(passwordHash),
@@ -50,11 +52,13 @@ func (u impleUsecase) CreateUser(ctx context.Context, input users.CreateInput) (
 		return models.User{}, err
 	}
 
+	// create user_role
 	if err := u.repo.InsertUserRoleInTx(ctx, tx, user.ID.String(), role.ID.String()); err != nil {
 		u.l.Errorf(ctx, "usecase.CreateUser.InsertUserRoleInTx: %v", err)
 		return models.User{}, err
 	}
 
+	// if done not error, transaction done and commit
 	if err := tx.Commit(ctx); err != nil {
 		u.l.Errorf(ctx, "usecase.CreateUser.Commit: %v", err)
 		return models.User{}, err

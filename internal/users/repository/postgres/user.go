@@ -13,14 +13,14 @@ import (
 )
 
 func (r impleRepository) CreateUser(ctx context.Context, opts repository.CreateOptions) (models.User, error) {
-	return r.createUser(ctx, r.db, opts)
+	return r.insertUserRow(ctx, r.db, opts)
 }
 
-func (r impleRepository) CreateUserInTx(ctx context.Context, tx pgx.Tx, opts repository.CreateOptions) (models.User, error) {
-	return r.createUser(ctx, tx, opts)
+func (r impleRepository) CreateUserWithinTx(ctx context.Context, tx pgx.Tx, opts repository.CreateOptions) (models.User, error) {
+	return r.insertUserRow(ctx, tx, opts)
 }
 
-func (r impleRepository) createUser(ctx context.Context, db sqlc.DBTX, opts repository.CreateOptions) (models.User, error) {
+func (r impleRepository) insertUserRow(ctx context.Context, db sqlc.DBTX, opts repository.CreateOptions) (models.User, error) {
 	q := sqlc.New(db)
 
 	var bday pgtype.Date

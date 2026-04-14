@@ -17,6 +17,6 @@ func (h handler) mapError(err error) error {
 	case permissions.ErrPermissionNotFound:
 		return errPermissionNotFound
 	default:
-		panic(err)
+		return err
 	}
 }
