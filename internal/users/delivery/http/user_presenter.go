@@ -87,6 +87,37 @@ func (r listUsersReq) validate() error {
 	return nil
 }
 
+type getUsersReq struct {
+	ID       string `form:"id"`
+	Username string `form:"username"`
+	Phone    string `form:"phone"`
+}
+
+func (r getUsersReq) toInput() users.GetInput {
+	return users.GetInput{
+		Filter: users.Filter{
+			ID:       r.ID,
+			Username: r.Username,
+			Phone:    r.Phone,
+		},
+	}
+}
+
+func (r getUsersReq) validate() error {
+	if r.ID != "" && uuid.Validate(r.ID) != nil {
+		return errWrongQuery
+	}
+	return nil
+}
+
+func (r getUsersReq) toFilter() users.Filter {
+	return users.Filter{
+		ID:       r.ID,
+		Username: r.Username,
+		Phone:    r.Phone,
+	}
+}
+
 type usesResp struct {
 	ID        string     `json:"id"`
 	Username  string     `json:"username"`

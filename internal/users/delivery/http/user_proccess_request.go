@@ -6,6 +6,7 @@ import (
 	"github.com/zeross/project-demo/internal/models"
 	pkgErrors "github.com/zeross/project-demo/pkg/errors"
 	"github.com/zeross/project-demo/pkg/jwt"
+	"github.com/zeross/project-demo/pkg/paginator"
 )
 
 func (h handler) processCreateRequest(c *gin.Context) (createReq, error) {
@@ -68,6 +69,37 @@ func (h handler) processListUsersRequest(c *gin.Context) (listUsersReq, models.S
 	sc := jwt.NewScope(payload)
 
 	return req, sc, nil
+}
+
+func (h handler) processGetUsersRequest(c *gin.Context) (getUsersReq, paginator.PaginatorQuery, models.Scope, error) {
+	ctx := c.Request.Context()
+
+	payload, ok := jwt.GetPayloadFromContext(ctx)
+	if !ok {
+		h.l.Errorf(ctx, "users.delivery.http.processGetUsersRequest.GetPayloadFromContext: unauthorized")
+		return getUsersReq{}, paginator.PaginatorQuery{}, models.Scope{}, pkgErrors.NewUnauthorizedHTTPError()
+	}
+
+	var req getUsersReq
+	if err := c.ShouldBindQuery(&req); err != nil {
+		h.l.Errorf(ctx, "users.delivery.http.processGetUsersRequest.ShouldBindQuery: %v", err)
+		return getUsersReq{}, paginator.PaginatorQuery{}, models.Scope{}, errWrongQuery
+	}
+
+	if err := req.validate(); err != nil {
+		h.l.Errorf(ctx, "users.delivery.http.processGetUsersRequest.ShouldBindQuery: %v", err)
+		return getUsersReq{}, paginator.PaginatorQuery{}, models.Scope{}, errWrongBody
+	}
+
+	var pq paginator.PaginatorQuery
+	if err := c.ShouldBindQuery(&pq); err != nil {
+		h.l.Errorf(ctx, "users.delivery.http.processGetUsersRequest.ShouldBindQuery: %v", errWrongQuery)
+		return getUsersReq{}, paginator.PaginatorQuery{}, models.Scope{}, errWrongQuery
+	}
+
+	sc := jwt.NewScope(payload)
+
+	return req, pq, sc, nil
 }
 
 func (h handler) processUpdateRequest(c *gin.Context) (updateUserReq, models.Scope, error) {

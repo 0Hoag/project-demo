@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/zeross/project-demo/internal/users"
 	"github.com/zeross/project-demo/pkg/response"
 )
 
@@ -65,7 +66,32 @@ func (h handler) ListUsers(c *gin.Context) {
 	}
 
 	response.OK(c, h.newListUserResp(users))
+}
 
+func (h handler) GetUsers(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	req, pq, sc, err := h.processGetUsersRequest(c)
+	if err != nil {
+		h.l.Errorf(ctx, "http.GetUsers.processGetUsersRequest: %v", err)
+		response.Error(c, err)
+		return
+	}
+
+	var input users.GetInput
+	input.Filter = req.toFilter()
+	pq.Adjust()
+	input.PagQuery = pq
+
+	users, err := h.uc.GetUsers(ctx, sc, input)
+	if err != nil {
+		h.l.Errorf(ctx, "http.GetUsers.GetUsers: %v", err)
+		mapErr := h.mapError(err)
+		response.Error(c, mapErr)
+		return
+	}
+
+	response.OK(c, h.newListUserResp(users))
 }
 
 func (h handler) UpdateUser(c *gin.Context) {
