@@ -2,6 +2,8 @@ package users
 
 import (
 	"time"
+
+	"github.com/zeross/project-demo/pkg/paginator"
 )
 
 type CreateInput struct {
@@ -21,7 +23,17 @@ type UpdateInput struct {
 	Birthday  *time.Time `json:"birthday"`
 }
 
+type Filter struct {
+	ID       string
+	Username string
+	Phone    string
+}
+
 type ListInput struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Filter
+}
+
+type GetInput struct {
+	Filter
+	PagQuery paginator.PaginatorQuery
 }

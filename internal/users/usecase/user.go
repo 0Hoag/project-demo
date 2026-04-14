@@ -88,11 +88,30 @@ func (u impleUsecase) DetailUser(ctx context.Context, sc models.Scope, id string
 
 func (u impleUsecase) ListUsers(ctx context.Context, sc models.Scope, input users.ListInput) ([]models.User, error) {
 	users, err := u.repo.ListUsers(ctx, sc, repository.ListOptions{
-		Limit:  input.Limit,
-		Offset: input.Offset,
+		Filter: repository.Filter{
+			ID:       input.Filter.ID,
+			Username: input.Filter.Username,
+			Phone:    input.Filter.Phone,
+		},
 	})
 	if err != nil {
 		u.l.Errorf(ctx, "usecase.ListUsers.ListUsers: %v", err)
+		return nil, err
+	}
+	return users, nil
+}
+
+func (u impleUsecase) GetUsers(ctx context.Context, sc models.Scope, input users.GetInput) ([]models.User, error) {
+	users, err := u.repo.GetUsers(ctx, sc, repository.GetUsersOptions{
+		Filter: repository.Filter{
+			ID:       input.Filter.ID,
+			Username: input.Filter.Username,
+			Phone:    input.Filter.Phone,
+		},
+		PagQuery: input.PagQuery,
+	})
+	if err != nil {
+		u.l.Errorf(ctx, "usecase.GetUsers.GetUsers: %v", err)
 		return nil, err
 	}
 	return users, nil

@@ -65,20 +65,24 @@ func (r updateUserReq) validate() error {
 }
 
 type listUsersReq struct {
-	Limit  int32 `form:"limit"`
-	Offset int32 `form:"offset"`
+	ID       string `form:"id"`
+	Username string `form:"username"`
+	Phone    string `form:"phone"`
 }
 
 func (r listUsersReq) toInput() users.ListInput {
 	return users.ListInput{
-		Limit:  r.Limit,
-		Offset: r.Offset,
+		Filter: users.Filter{
+			ID:       r.ID,
+			Username: r.Username,
+			Phone:    r.Phone,
+		},
 	}
 }
 
 func (r listUsersReq) validate() error {
-	if r.Limit <= 0 {
-		return errWrongBody
+	if r.ID != "" && uuid.Validate(r.ID) != nil {
+		return errWrongQuery
 	}
 	return nil
 }
