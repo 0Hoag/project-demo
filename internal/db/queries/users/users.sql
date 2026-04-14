@@ -51,6 +51,19 @@ WHERE deleted_at IS NULL
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
 
+-- name: GetUsers :many
+SELECT
+  id, username, phone, avatar_url, bio, birthday,
+  created_at, updated_at, deleted_at
+FROM users
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountUsers :one
+SELECT count(*) FROM users
+WHERE deleted_at IS NULL;
+
 -- name: UpdateUser :one
 UPDATE users SET
   username = $2, phone = $3, password = $4, avatar_url = $5, bio = $6, birthday = $7

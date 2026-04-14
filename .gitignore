@@ -1,0 +1,14 @@
+# Environment variables
+.env
+.env.example
+
+# Mockery generated files
+mocks/
+**/mocks/
+
+# Binaries
+main
+
+# Dependency directories
+# Tránh add folder vendor của Golang hoặc các ngôn ngữ khác
+vendor/

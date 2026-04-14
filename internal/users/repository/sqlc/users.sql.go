@@ -11,6 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countUsers = `-- name: CountUsers :one
+SELECT count(*) FROM users
+WHERE deleted_at IS NULL
+`
+
+func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsers)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   username, phone, password, avatar_url, bio, birthday
@@ -118,6 +130,63 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const getUsers = `-- name: GetUsers :many
+SELECT
+  id, username, phone, avatar_url, bio, birthday,
+  created_at, updated_at, deleted_at
+FROM users
+WHERE deleted_at IS NULL
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetUsersParams struct {
+	Limit  int32
+	Offset int32
+}
+
+type GetUsersRow struct {
+	ID        pgtype.UUID
+	Username  string
+	Phone     string
+	AvatarUrl string
+	Bio       string
+	Birthday  pgtype.Date
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
+}
+
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersRow, error) {
+	rows, err := q.db.Query(ctx, getUsers, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUsersRow
+	for rows.Next() {
+		var i GetUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Phone,
+			&i.AvatarUrl,
+			&i.Bio,
+			&i.Birthday,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insertUserRole = `-- name: InsertUserRole :exec
