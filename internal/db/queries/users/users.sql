@@ -48,21 +48,29 @@ SELECT
   created_at, updated_at, deleted_at
 FROM users
 WHERE deleted_at IS NULL
-ORDER BY created_at DESC
-LIMIT $1 OFFSET $2;
+  AND (sqlc.narg('id')::uuid IS NULL OR id = sqlc.narg('id'))
+  AND (sqlc.narg('username')::text IS NULL OR username ILIKE '%' || sqlc.narg('username') || '%')
+  AND (sqlc.narg('phone')::text IS NULL OR phone = sqlc.narg('phone'))
+ORDER BY created_at DESC;
 
 -- name: GetUsers :many
 SELECT
-  id, username, phone, avatar_url, bio, birthday,
+  id, username, phone, password, avatar_url, bio, birthday,
   created_at, updated_at, deleted_at
 FROM users
 WHERE deleted_at IS NULL
+  AND (sqlc.narg('id')::uuid IS NULL OR id = sqlc.narg('id'))
+  AND (sqlc.narg('username')::text IS NULL OR username ILIKE '%' || sqlc.narg('username') || '%')
+  AND (sqlc.narg('phone')::text IS NULL OR phone = sqlc.narg('phone'))
 ORDER BY created_at DESC
-LIMIT $1 OFFSET $2;
+LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 
 -- name: CountUsers :one
 SELECT count(*) FROM users
-WHERE deleted_at IS NULL;
+WHERE deleted_at IS NULL
+  AND (sqlc.narg('id')::uuid IS NULL OR id = sqlc.narg('id'))
+  AND (sqlc.narg('username')::text IS NULL OR username ILIKE '%' || sqlc.narg('username') || '%')
+  AND (sqlc.narg('phone')::text IS NULL OR phone = sqlc.narg('phone'));
 
 -- name: UpdateUser :one
 UPDATE users SET

@@ -14,10 +14,19 @@ import (
 const countUsers = `-- name: CountUsers :one
 SELECT count(*) FROM users
 WHERE deleted_at IS NULL
+  AND ($1::uuid IS NULL OR id = $1)
+  AND ($2::text IS NULL OR username ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR phone = $3)
 `
 
-func (q *Queries) CountUsers(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, countUsers)
+type CountUsersParams struct {
+	ID       pgtype.UUID
+	Username pgtype.Text
+	Phone    pgtype.Text
+}
+
+func (q *Queries) CountUsers(ctx context.Context, arg CountUsersParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countUsers, arg.ID, arg.Username, arg.Phone)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -134,44 +143,45 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 
 const getUsers = `-- name: GetUsers :many
 SELECT
-  id, username, phone, avatar_url, bio, birthday,
+  id, username, phone, password, avatar_url, bio, birthday,
   created_at, updated_at, deleted_at
 FROM users
 WHERE deleted_at IS NULL
+  AND ($1::uuid IS NULL OR id = $1)
+  AND ($2::text IS NULL OR username ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR phone = $3)
 ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
+LIMIT $5 OFFSET $4
 `
 
 type GetUsersParams struct {
-	Limit  int32
-	Offset int32
+	ID       pgtype.UUID
+	Username pgtype.Text
+	Phone    pgtype.Text
+	Offset   int32
+	Limit    int32
 }
 
-type GetUsersRow struct {
-	ID        pgtype.UUID
-	Username  string
-	Phone     string
-	AvatarUrl string
-	Bio       string
-	Birthday  pgtype.Date
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
-	DeletedAt pgtype.Timestamptz
-}
-
-func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]GetUsersRow, error) {
-	rows, err := q.db.Query(ctx, getUsers, arg.Limit, arg.Offset)
+func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, getUsers,
+		arg.ID,
+		arg.Username,
+		arg.Phone,
+		arg.Offset,
+		arg.Limit,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUsersRow
+	var items []User
 	for rows.Next() {
-		var i GetUsersRow
+		var i User
 		if err := rows.Scan(
 			&i.ID,
 			&i.Username,
 			&i.Phone,
+			&i.Password,
 			&i.AvatarUrl,
 			&i.Bio,
 			&i.Birthday,
@@ -268,17 +278,20 @@ SELECT
   created_at, updated_at, deleted_at
 FROM users
 WHERE deleted_at IS NULL
+  AND ($1::uuid IS NULL OR id = $1)
+  AND ($2::text IS NULL OR username ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR phone = $3)
 ORDER BY created_at DESC
-LIMIT $1 OFFSET $2
 `
 
 type ListUsersParams struct {
-	Limit  int32
-	Offset int32
+	ID       pgtype.UUID
+	Username pgtype.Text
+	Phone    pgtype.Text
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, listUsers, arg.ID, arg.Username, arg.Phone)
 	if err != nil {
 		return nil, err
 	}

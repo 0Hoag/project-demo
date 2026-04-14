@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeross/project-demo/internal/models"
+	"github.com/zeross/project-demo/pkg/paginator"
 )
 
 type CreateOptions struct {
@@ -23,7 +24,17 @@ type UpdateOptions struct {
 	Birthday     *time.Time
 }
 
+type Filter struct {
+	ID       string
+	Username string
+	Phone    string
+}
+
 type ListOptions struct {
-	Limit  int32
-	Offset int32
+	Filter
+}
+
+type GetUsersOptions struct {
+	Filter
+	PagQuery paginator.PaginatorQuery
 }

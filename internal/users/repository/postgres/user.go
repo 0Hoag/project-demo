@@ -107,12 +107,45 @@ func (r impleRepository) ListPermissionNamesByUserID(ctx context.Context, userID
 func (r impleRepository) ListUsers(ctx context.Context, sc models.Scope, opts repository.ListOptions) ([]models.User, error) {
 	q := sqlc.New(r.db)
 
+	var uid pgtype.UUID
+	if opts.Filter.ID != "" {
+		uid = pgtype.UUID{Bytes: uuid.MustParse(opts.Filter.ID), Valid: true}
+	}
+
 	users, err := q.ListUsers(ctx, sqlc.ListUsersParams{
-		Limit:  opts.Limit,
-		Offset: opts.Offset,
+		ID:       uid,
+		Username: pgtype.Text{String: opts.Filter.Username, Valid: opts.Filter.Username != ""},
+		Phone:    pgtype.Text{String: opts.Filter.Phone, Valid: opts.Filter.Phone != ""},
 	})
 	if err != nil {
 		r.l.Errorf(ctx, "postgres.userrepo.ListUsers: %v", err)
+		return nil, err
+	}
+
+	out := make([]models.User, 0, len(users))
+	for _, u := range users {
+		out = append(out, mapUser(u))
+	}
+	return out, nil
+}
+
+func (r impleRepository) GetUsers(ctx context.Context, sc models.Scope, opts repository.GetUsersOptions) ([]models.User, error) {
+	q := sqlc.New(r.db)
+
+	var uid pgtype.UUID
+	if opts.Filter.ID != "" {
+		uid = pgtype.UUID{Bytes: uuid.MustParse(opts.Filter.ID), Valid: true}
+	}
+
+	users, err := q.GetUsers(ctx, sqlc.GetUsersParams{
+		ID:       uid,
+		Username: pgtype.Text{String: opts.Filter.Username, Valid: opts.Filter.Username != ""},
+		Phone:    pgtype.Text{String: opts.Filter.Phone, Valid: opts.Filter.Phone != ""},
+		Limit:    opts.PagQuery.Limit,
+		Offset:   opts.PagQuery.Offset(),
+	})
+	if err != nil {
+		r.l.Errorf(ctx, "postgres.userrepo.GetUsers: %v", err)
 		return nil, err
 	}
 

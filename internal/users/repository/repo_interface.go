@@ -16,6 +16,7 @@ type Repository interface {
 
 	DetailUser(ctx context.Context, sc models.Scope, id string) (models.User, error)
 	GetUserByPhone(ctx context.Context, phone string) (models.User, error)
+	GetUsers(ctx context.Context, sc models.Scope, opts GetUsersOptions) ([]models.User, error)
 	ListRoleNamesByUserID(ctx context.Context, userID string) ([]string, error)
 	ListPermissionNamesByUserID(ctx context.Context, userID string) ([]string, error)
 	ListUsers(ctx context.Context, sc models.Scope, opts ListOptions) ([]models.User, error)

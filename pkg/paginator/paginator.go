@@ -10,8 +10,8 @@ const (
 // PaginatorQuery is a struct that contains the page and limit of a request.
 type PaginatorQuery struct {
 	Page        int   `json:"page" form:"page"`
-	Limit       int64 `json:"limit" form:"limit"`
-	ShiftOffset int64
+	Limit       int32 `json:"limit" form:"limit"`
+	ShiftOffset int32
 }
 
 // Adjust adjusts the paginator's page and limit to the default values if they are invalid.
@@ -26,8 +26,8 @@ func (p *PaginatorQuery) Adjust() {
 }
 
 // Offset returns the offset of the paginator.
-func (p *PaginatorQuery) Offset() int64 {
-	offset := int64(p.Page-1)*p.Limit - p.ShiftOffset
+func (p *PaginatorQuery) Offset() int32 {
+	offset := int32(p.Page-1)*p.Limit - p.ShiftOffset
 	if offset < 0 {
 		return 0
 	}
@@ -35,9 +35,9 @@ func (p *PaginatorQuery) Offset() int64 {
 }
 
 type Paginator struct {
-	Total       int64
-	Count       int64
-	PerPage     int64
+	Total       int32
+	Count       int32
+	PerPage     int32
 	CurrentPage int
 }
 
@@ -63,9 +63,9 @@ func (p Paginator) ToResponse() PaginatorResponse {
 
 // PaginatorResponse is a struct that contains the response of a paginator.
 type PaginatorResponse struct {
-	Total       int64 `json:"total"`
-	Count       int64 `json:"count"`
-	PerPage     int64 `json:"per_page"`
+	Total       int32 `json:"total"`
+	Count       int32 `json:"count"`
+	PerPage     int32 `json:"per_page"`
 	CurrentPage int   `json:"current_page"`
 	TotalPages  int   `json:"total_pages"`
 }
